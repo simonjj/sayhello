@@ -1,0 +1,42 @@
+name: Trigger auto deployment for aulivehelloall
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/aulivehelloall-AutoDeployTrigger-de4dce30-44c9-4879-b845-ecdb5223a107.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AULIVEHELLOALL_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: simonj.azurecr.io
+          registryUsername: ${{ secrets.AULIVEHELLOALL_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.AULIVEHELLOALL_REGISTRY_PASSWORD }}
+          containerAppName: aulivehelloall
+          resourceGroup: simon-demo
+          imageToBuild: simonj.azurecr.io/aulivehelloall:${{ github.sha }}
+          
+
+     
+
