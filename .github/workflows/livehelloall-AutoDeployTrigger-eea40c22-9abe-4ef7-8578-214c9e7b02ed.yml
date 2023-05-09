@@ -1,0 +1,42 @@
+name: Trigger auto deployment for livehelloall
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/livehelloall-AutoDeployTrigger-eea40c22-9abe-4ef7-8578-214c9e7b02ed.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.LIVEHELLOALL_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: simonj.azurecr.io
+          registryUsername: ${{ secrets.LIVEHELLOALL_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.LIVEHELLOALL_REGISTRY_PASSWORD }}
+          containerAppName: livehelloall
+          resourceGroup: simon-demo
+          imageToBuild: simonj.azurecr.io/livehelloall:${{ github.sha }}
+          
+
+     
+
