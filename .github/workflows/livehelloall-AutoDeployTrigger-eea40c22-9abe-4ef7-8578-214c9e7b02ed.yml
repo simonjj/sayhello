@@ -26,7 +26,7 @@ jobs:
         with:
           creds: ${{ secrets.LIVEHELLOALL_AZURE_CREDENTIALS }}
 
-      - name: Build and push container image to registry
+      - name: Build & push container then deploy to ACA
         uses: azure/container-apps-deploy-action@v1
         with:
           appSourcePath: ${{ github.workspace }} 
@@ -36,26 +36,3 @@ jobs:
           containerAppName: livehelloall
           resourceGroup: simon-demo
           imageToBuild: simonj.azurecr.io/livehelloall:${{ github.sha }}
-  
-    deploy:
-      runs-on: ubuntu-latest
-      needs: build
-      
-      steps:
-        - name: Azure Login
-          uses: azure/login@v1
-          with:
-            creds: ${{ secrets.LIVEHELLOALL_AZURE_CREDENTIALS }}
-
-
-        - name: Deploy to containerapp
-          uses: azure/CLI@v1
-          with:
-            inlineScript: |
-              az config set extension.use_dynamic_install=yes_without_prompt
-              az containerapp registry set -n livehelloall -g simonj --server simonj.azurecr.io --username  ${{ secrets.LIVEHELLOALL_REGISTRY_USERNAME }} --password ${{ secrets.LIVEHELLOALL_REGISTRY_PASSWORD }}
-              az containerapp update -n livehelloall -g simonj --image simonj.azurecr.io/livehelloall:${{ github.sha }}
-            
-
-     
-
